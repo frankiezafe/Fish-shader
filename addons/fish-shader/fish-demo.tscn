@@ -1,0 +1,389 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://addons/fish-shader/assets/Fish Perch.tres" type="ArrayMesh" id=1]
+[ext_resource path="res://addons/fish-shader/shader/fish.tres" type="Material" id=2]
+[ext_resource path="res://addons/fish-shader/scripts/fish.gd" type="Script" id=3]
+[ext_resource path="res://addons/fish-shader/textures/grid.png" type="Texture" id=4]
+
+[sub_resource type="QuadMesh" id=1]
+
+custom_aabb = AABB( 0, 0, 0, 0, 0, 0 )
+flip_faces = false
+size = Vector2( 1, 1 )
+
+[sub_resource type="SpatialMaterial" id=2]
+
+render_priority = 0
+flags_transparent = false
+flags_unshaded = false
+flags_vertex_lighting = false
+flags_no_depth_test = false
+flags_use_point_size = false
+flags_world_triplanar = false
+flags_fixed_size = false
+flags_albedo_tex_force_srgb = false
+flags_do_not_receive_shadows = false
+vertex_color_use_as_albedo = false
+vertex_color_is_srgb = false
+params_diffuse_mode = 0
+params_specular_mode = 0
+params_blend_mode = 0
+params_cull_mode = 0
+params_depth_draw_mode = 0
+params_line_width = 1.0
+params_point_size = 1.0
+params_billboard_mode = 0
+params_grow = false
+params_use_alpha_scissor = false
+albedo_color = Color( 1, 1, 1, 1 )
+metallic = 0.0
+metallic_specular = 0.5
+metallic_texture_channel = 0
+roughness = 0.0
+roughness_texture_channel = 0
+emission_enabled = false
+normal_enabled = false
+rim_enabled = false
+clearcoat_enabled = false
+anisotropy_enabled = false
+ao_enabled = false
+depth_enabled = false
+subsurf_scatter_enabled = false
+transmission_enabled = false
+refraction_enabled = false
+detail_enabled = false
+uv1_scale = Vector3( 1, 1, 1 )
+uv1_offset = Vector3( 0, 0, 0 )
+uv1_triplanar = false
+uv1_triplanar_sharpness = 1.0
+uv2_scale = Vector3( 1, 1, 1 )
+uv2_offset = Vector3( 0, 0, 0 )
+uv2_triplanar = false
+uv2_triplanar_sharpness = 1.0
+proximity_fade_enable = false
+distance_fade_enable = false
+_sections_unfolded = [ "Flags", "Parameters" ]
+
+[sub_resource type="Environment" id=3]
+
+background_mode = 1
+background_sky_custom_fov = 0.0
+background_color = Color( 0.628906, 0.628906, 0.628906, 1 )
+background_energy = 1.0
+background_canvas_max_layer = 0
+ambient_light_color = Color( 0, 0, 0, 1 )
+ambient_light_energy = 1.0
+ambient_light_sky_contribution = 1.0
+fog_enabled = false
+fog_color = Color( 0.5, 0.6, 0.7, 1 )
+fog_sun_color = Color( 1, 0.9, 0.7, 1 )
+fog_sun_amount = 0.0
+fog_depth_enabled = true
+fog_depth_begin = 10.0
+fog_depth_curve = 1.0
+fog_transmit_enabled = false
+fog_transmit_curve = 1.0
+fog_height_enabled = false
+fog_height_min = 0.0
+fog_height_max = 100.0
+fog_height_curve = 1.0
+tonemap_mode = 0
+tonemap_exposure = 1.0
+tonemap_white = 1.0
+auto_exposure_enabled = false
+auto_exposure_scale = 0.4
+auto_exposure_min_luma = 0.05
+auto_exposure_max_luma = 8.0
+auto_exposure_speed = 0.5
+ss_reflections_enabled = false
+ss_reflections_max_steps = 64
+ss_reflections_fade_in = 0.15
+ss_reflections_fade_out = 2.0
+ss_reflections_depth_tolerance = 0.2
+ss_reflections_roughness = true
+ssao_enabled = false
+ssao_radius = 1.0
+ssao_intensity = 1.0
+ssao_radius2 = 0.0
+ssao_intensity2 = 1.0
+ssao_bias = 0.01
+ssao_light_affect = 0.0
+ssao_color = Color( 0, 0, 0, 1 )
+ssao_quality = 0
+ssao_blur = 3
+ssao_edge_sharpness = 4.0
+dof_blur_far_enabled = false
+dof_blur_far_distance = 10.0
+dof_blur_far_transition = 5.0
+dof_blur_far_amount = 0.1
+dof_blur_far_quality = 1
+dof_blur_near_enabled = false
+dof_blur_near_distance = 2.0
+dof_blur_near_transition = 1.0
+dof_blur_near_amount = 0.1
+dof_blur_near_quality = 1
+glow_enabled = false
+glow_levels/1 = false
+glow_levels/2 = false
+glow_levels/3 = true
+glow_levels/4 = false
+glow_levels/5 = true
+glow_levels/6 = false
+glow_levels/7 = false
+glow_intensity = 0.8
+glow_strength = 1.0
+glow_bloom = 0.0
+glow_blend_mode = 2
+glow_hdr_threshold = 1.0
+glow_hdr_scale = 2.0
+glow_bicubic_upscale = false
+adjustment_enabled = false
+adjustment_brightness = 1.0
+adjustment_contrast = 1.0
+adjustment_saturation = 1.0
+_sections_unfolded = [ "Adjustments", "Ambient Light", "Auto Exposure", "Background", "DOF Far Blur", "DOF Near Blur", "Fog", "Glow", "SS Reflections", "SSAO", "Tonemap" ]
+
+[sub_resource type="Shader" id=4]
+
+code = "shader_type spatial;
+render_mode blend_mix,depth_draw_opaque,cull_back,diffuse_burley,specular_schlick_ggx;
+
+// fish params
+uniform float timer;
+
+uniform float twist_factor;
+uniform float twist_factor_frequency;
+uniform float s_factor;
+uniform float s_factor_frequency;
+
+uniform float frequency;
+uniform float yaw_factor;
+uniform vec3 translate;
+
+uniform float head_z;
+uniform vec4 head_color;
+uniform float tail_z;
+uniform vec4 tail_color;
+
+// standard params
+uniform vec4 albedo : hint_color;
+uniform sampler2D texture_albedo : hint_albedo;
+uniform float specular;
+uniform float metallic;
+uniform float roughness : hint_range(0,1);
+uniform float point_size : hint_range(0,128);
+uniform sampler2D texture_metallic : hint_white;
+uniform vec4 metallic_texture_channel;
+uniform sampler2D texture_roughness : hint_white;
+uniform vec4 roughness_texture_channel;
+uniform vec3 uv1_scale;
+uniform vec3 uv1_offset;
+uniform vec3 uv2_scale;
+uniform vec3 uv2_offset;
+
+void vertex() {
+	
+	float tmult = sin( timer * frequency );
+	
+	vec3 new_pos = VERTEX;
+	vec3 tmp = VERTEX;
+	// mix
+	float dist_ht = tail_z - head_z;
+	float ranged_z = ( min( max( VERTEX.z, head_z ), tail_z ) - head_z ) / dist_ht;
+	vec4 ctrl_color = tail_color * ranged_z + head_color * (1.0-ranged_z);
+	
+	// twist
+	float twist_a = ctrl_color.r * sin( VERTEX.z + timer * twist_factor_frequency ) * twist_factor;
+	float twist_cos = cos( twist_a );
+	float twist_sin = sin( twist_a );
+	tmp.x = new_pos.x * twist_cos - new_pos.y * twist_sin;
+	tmp.y = new_pos.x * twist_sin + new_pos.y * twist_cos;
+	new_pos = tmp;
+	
+	// S factor
+	float s_a = ctrl_color.g * sin( VERTEX.z - timer * s_factor_frequency ) * s_factor;
+	new_pos.x += s_a;
+	
+	// yaw
+	float yaw_a = ctrl_color.b * tmult * yaw_factor;
+	float yaw_cos = cos( yaw_a );
+	float yaw_sin = sin( yaw_a );
+	tmp.x = new_pos.x * yaw_cos - new_pos.z * yaw_sin;
+	tmp.z = new_pos.x * yaw_sin + new_pos.z * yaw_cos;
+	new_pos = tmp;
+	
+	// translation
+	new_pos += ctrl_color.a * translate * tmult;
+
+	VERTEX = new_pos;
+	
+	// UV
+	UV=UV*uv1_scale.xy+uv1_offset.xy;
+	
+}
+
+void fragment() {
+	vec2 base_uv = UV;
+	vec4 albedo_tex = texture(texture_albedo,base_uv);
+	ALBEDO = albedo.rgb * albedo_tex.rgb;
+	float metallic_tex = dot(texture(texture_metallic,base_uv),metallic_texture_channel);
+	METALLIC = metallic_tex * metallic;
+	float roughness_tex = dot(texture(texture_roughness,base_uv),roughness_texture_channel);
+	ROUGHNESS = roughness_tex * roughness;
+	SPECULAR = specular;
+}
+"
+
+[sub_resource type="ShaderMaterial" id=5]
+
+render_priority = 0
+shader = SubResource( 4 )
+shader_param/timer = 9.62974
+shader_param/twist_factor = 0.73
+shader_param/twist_factor_frequency = -3.0
+shader_param/s_factor = 0.5
+shader_param/s_factor_frequency = 3.0
+shader_param/frequency = 3.0
+shader_param/yaw_factor = 0.0
+shader_param/translate = Vector3( 0.37, 0, 0 )
+shader_param/head_z = -0.46
+shader_param/head_color = Color( 0.558, 0.105569, 0.0944706, 0.099451 )
+shader_param/tail_z = 1
+shader_param/tail_color = Color( 1, 1, 1, 1 )
+shader_param/albedo = Color( 1, 1, 1, 1 )
+shader_param/specular = 0.5
+shader_param/metallic = 0.0
+shader_param/roughness = 0.0
+shader_param/point_size = 1.0
+shader_param/metallic_texture_channel = Plane( 1, 0, 0, 0 )
+shader_param/roughness_texture_channel = Plane( 1, 0, 0, 0 )
+shader_param/uv1_scale = Vector3( 1, 1, 1 )
+shader_param/uv1_offset = Vector3( 0, 0, 0 )
+shader_param/uv2_scale = Vector3( 1, 1, 1 )
+shader_param/uv2_offset = Vector3( 0, 0, 0 )
+shader_param/texture_albedo = ExtResource( 4 )
+_sections_unfolded = [ "Resource", "shader_param" ]
+
+[node name="root" type="Spatial" index="0"]
+
+[node name="floor" type="MeshInstance" parent="." index="0"]
+transform = Transform( 300, 0, 0, 0, -1.31134e-05, 300, 0, -300, -1.31134e-05, 0, 0, 0 )
+layers = 1
+material_override = null
+cast_shadow = 1
+extra_cull_margin = 0.0
+use_in_baked_light = false
+lod_min_distance = 0.0
+lod_min_hysteresis = 0.0
+lod_max_distance = 0.0
+lod_max_hysteresis = 0.0
+mesh = SubResource( 1 )
+skeleton = NodePath("..")
+material/0 = SubResource( 2 )
+_sections_unfolded = [ "Geometry", "Transform", "material" ]
+
+[node name="DirectionalLight" type="DirectionalLight" parent="." index="1"]
+transform = Transform( -0.42629, 0.805851, -0.410952, 0.489806, 0.587566, 0.644093, 0.760504, 0.0732836, -0.645184, -2.40081, 7.56237, 0 )
+layers = 1
+light_color = Color( 1, 1, 1, 1 )
+light_energy = 1.0
+light_indirect_energy = 1.0
+light_negative = false
+light_specular = 0.5
+light_bake_mode = 1
+light_cull_mask = -1
+shadow_enabled = true
+shadow_color = Color( 0, 0, 0, 1 )
+shadow_bias = 0.1
+shadow_contact = 0.0
+shadow_reverse_cull_face = false
+editor_only = false
+directional_shadow_mode = 2
+directional_shadow_split_1 = 0.1
+directional_shadow_split_2 = 0.2
+directional_shadow_split_3 = 0.5
+directional_shadow_blend_splits = false
+directional_shadow_normal_bias = 0.8
+directional_shadow_bias_split_scale = 0.25
+directional_shadow_depth_range = 0
+directional_shadow_max_distance = 200.0
+_sections_unfolded = [ "Shadow" ]
+
+[node name="Camera" type="Camera" parent="." index="2"]
+transform = Transform( -0.857218, 0.122854, -0.500084, -0.0103585, 0.966814, 0.25527, 0.51485, 0.224002, -0.827498, -2.07261, 4.21653, -3.93371 )
+keep_aspect = 1
+cull_mask = 1048575
+environment = null
+h_offset = 0.0
+v_offset = 0.0
+doppler_tracking = 0
+projection = 0
+current = false
+fov = 50.0
+size = 1.0
+near = 0.05
+far = 100.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." index="3"]
+environment = SubResource( 3 )
+
+[node name="fish" type="MeshInstance" parent="." index="4"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 3, 0 )
+layers = 1
+material_override = null
+cast_shadow = 1
+extra_cull_margin = 0.0
+use_in_baked_light = false
+lod_min_distance = 0.0
+lod_min_hysteresis = 0.0
+lod_max_distance = 0.0
+lod_max_hysteresis = 0.0
+mesh = ExtResource( 1 )
+skeleton = NodePath("..")
+material/0 = ExtResource( 2 )
+script = ExtResource( 3 )
+_sections_unfolded = [ "Transform", "material" ]
+frequency = 5.0
+fish_twist_frequency = -5.0
+fish_s_frequency = 5.0
+fish_translatex = 0.1
+fish_translatey = 0.0
+fish_translatez = 0.0
+fish_yaw = 0.25
+fish_twist = 0.8
+fish_s = 0.38
+fish_head_z = -1.16
+fish_tail_z = 1
+fish_head_color = Color( 0.497255, 0.144431, 0.55, 0.11051 )
+fish_tail_color = Color( 1, 1, 1, 1 )
+
+[node name="demo_fish" type="MeshInstance" parent="." index="5"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 3, 0 )
+layers = 1
+material_override = null
+cast_shadow = 1
+extra_cull_margin = 0.0
+use_in_baked_light = false
+lod_min_distance = 0.0
+lod_min_hysteresis = 0.0
+lod_max_distance = 0.0
+lod_max_hysteresis = 0.0
+mesh = ExtResource( 1 )
+skeleton = NodePath("..")
+material/0 = SubResource( 5 )
+script = ExtResource( 3 )
+_sections_unfolded = [ "Transform", "material" ]
+frequency = 3.0
+fish_twist_frequency = -3.0
+fish_s_frequency = 3.0
+fish_translatex = 0.37
+fish_translatey = 0.0
+fish_translatez = 0.0
+fish_yaw = 0.0
+fish_twist = 0.73
+fish_s = 0.5
+fish_head_z = -0.46
+fish_tail_z = 1
+fish_head_color = Color( 0.558, 0.105569, 0.0944706, 0.099451 )
+fish_tail_color = Color( 1, 1, 1, 1 )
+
